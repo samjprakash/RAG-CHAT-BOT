@@ -1,0 +1,49 @@
+name: Build and Deploy to EKS
+
+on:
+  push:
+    branches:
+      - main
+      - features
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Docker image
+        run: |
+          docker build -t si3mshady/llm_chat:latest .
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push si3mshady/llm_chat:latest
+
+      - name: Install kubectl
+        run: |
+          sudo apt-get update && sudo apt-get install -y kubectl
+
+      - name: Configure AWS credentials
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set region us-east-2
+
+
+      - name: Update kubeconfig for EKS cluster
+        run: |
+          aws eks update-kubeconfig --name llm --region us-east-2
+
+      - name: Deploy to Kubernetes
+        run: kubectl apply -f manifest.yml
+
+        
