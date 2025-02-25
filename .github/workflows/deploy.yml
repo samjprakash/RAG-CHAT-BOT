@@ -25,11 +25,8 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t si3mshady/llm_chat:latest .
-          - name: Login to Docker Hub & Build Docker Image
-        run: |
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker build -t your-dockerhub-username/your-image-name:latest .
-
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
           docker push si3mshady/llm_chat:latest
 
       - name: Install kubectl
